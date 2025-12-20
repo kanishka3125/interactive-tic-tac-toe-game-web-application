@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Trophy, 
@@ -13,7 +13,14 @@ import {
   Palette,
   Settings2,
   Volume2,
-  VolumeX
+  VolumeX,
+  MessageSquare,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  Zap,
+  Star,
+  Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,6 +30,13 @@ type Player = "X" | "O" | null;
 type GameMode = "PvP" | "PvE";
 type Difficulty = "Easy" | "Hard";
 type Theme = "Neon" | "Cyberpunk" | "Aurora" | "Midnight";
+type LogType = "info" | "success" | "warning";
+
+interface LogEntry {
+  message: string;
+  type: LogType;
+  time: string;
+}
 
 const WIN_COMBINATIONS = [
   [0, 1, 2], [3, 4, 5], [6, 7, 8],
@@ -36,6 +50,7 @@ const THEMES: Record<Theme, {
   accent2: string, 
   card: string,
   text: string,
+  muted: string,
   xColor: string,
   oColor: string 
 }> = {
@@ -45,6 +60,7 @@ const THEMES: Record<Theme, {
     accent2: "purple-500",
     card: "bg-white/5 border-white/10",
     text: "text-white",
+    muted: "text-white/40",
     xColor: "text-cyan-400",
     oColor: "text-purple-500"
   },
@@ -54,6 +70,7 @@ const THEMES: Record<Theme, {
     accent2: "pink-500",
     card: "bg-black/40 border-yellow-500/20",
     text: "text-yellow-50",
+    muted: "text-yellow-50/40",
     xColor: "text-yellow-400",
     oColor: "text-pink-500"
   },
@@ -63,6 +80,7 @@ const THEMES: Record<Theme, {
     accent2: "teal-400",
     card: "bg-emerald-900/10 border-emerald-500/20",
     text: "text-emerald-50",
+    muted: "text-emerald-50/40",
     xColor: "text-emerald-400",
     oColor: "text-teal-400"
   },
@@ -72,6 +90,7 @@ const THEMES: Record<Theme, {
     accent2: "rose-500",
     card: "bg-white/5 border-white/10",
     text: "text-slate-100",
+    muted: "text-slate-100/40",
     xColor: "text-slate-100",
     oColor: "text-rose-500"
   }
@@ -88,9 +107,20 @@ export function TicTacToe() {
   const [winner, setWinner] = useState<Player | "Draw">(null);
   const [winningLine, setWinningLine] = useState<number[] | null>(null);
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
-  const [gameLog, setGameLog] = useState<string[]>(["Game started"]);
+  const [gameLog, setGameLog] = useState<LogEntry[]>([{ 
+    message: "Game started", 
+    type: "info", 
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) 
+  }]);
+  
+  const logContainerRef = useRef<HTMLDivElement>(null);
 
   const currentTheme = THEMES[theme];
+
+  const addLog = useCallback((message: string, type: LogType = "info") => {
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    setGameLog(prev => [{ message, type, time }, ...prev.slice(0, 19)]);
+  }, []);
 
   const checkWinner = useCallback((currentBoard: Player[]) => {
     for (const combo of WIN_COMBINATIONS) {
@@ -163,7 +193,8 @@ export function TicTacToe() {
 
     setHistory((prev) => [...prev, board]);
     const newBoard = [...board];
-    newBoard[index] = isXNext ? "X" : "O";
+    const currentPlayer = isXNext ? "X" : "O";
+    newBoard[index] = currentPlayer;
     setBoard(newBoard);
 
     const result = checkWinner(newBoard);
@@ -172,19 +203,19 @@ export function TicTacToe() {
       setWinningLine(result.line);
       if (result.winner === "X") {
         setScores((s) => ({ ...s, X: s.X + 1 }));
-        setGameLog((l) => [`Player X wins!`, ...l.slice(0, 4)]);
+        addLog("Player X wins!", "success");
       } else if (result.winner === "O") {
         setScores((s) => ({ ...s, O: s.O + 1 }));
-        setGameLog((l) => [`${gameMode === "PvE" ? "Computer" : "Player O"} wins!`, ...l.slice(0, 4)]);
+        addLog(`${gameMode === "PvE" ? "Computer" : "Player O"} wins!`, "success");
       } else {
         setScores((s) => ({ ...s, draws: s.draws + 1 }));
-        setGameLog((l) => [`It's a draw!`, ...l.slice(0, 4)]);
+        addLog("It's a draw!", "warning");
       }
     } else {
       setIsXNext(!isXNext);
-      setGameLog((l) => [`${isXNext ? "X" : "O"} moved to ${index + 1}`, ...l.slice(0, 4)]);
+      addLog(`${currentPlayer} moved to position ${index + 1}`);
     }
-  }, [board, isXNext, winner, checkWinner, gameMode]);
+  }, [board, isXNext, winner, checkWinner, gameMode, addLog]);
 
   useEffect(() => {
     if (gameMode === "PvE" && !isXNext && !winner) {
@@ -202,7 +233,7 @@ export function TicTacToe() {
     setIsXNext(true);
     setWinner(null);
     setWinningLine(null);
-    setGameLog(["Game reset"]);
+    addLog("Game reset", "info");
   };
 
   const undoMove = () => {
@@ -212,7 +243,7 @@ export function TicTacToe() {
     setBoard(lastState);
     setHistory((prev) => prev.slice(0, -1));
     setIsXNext(!isXNext);
-    setGameLog((l) => ["Undo performed", ...l.slice(0, 4)]);
+    addLog("Undo performed", "warning");
   };
 
   return (
@@ -226,20 +257,20 @@ export function TicTacToe() {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative z-10 w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 gap-6"
+        className="relative z-10 w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-6"
       >
-        {/* Sidebar Left: Stats & Modes */}
+        {/* Sidebar Left: Settings */}
         <div className="lg:col-span-3 space-y-4 order-2 lg:order-1">
           <Card className={cn("backdrop-blur-xl transition-all duration-500", currentTheme.card)}>
             <CardContent className="p-4 space-y-4">
               <div className="flex items-center gap-2 mb-2">
-                <Settings2 className="w-4 h-4 opacity-50" />
-                <span className="text-xs font-bold uppercase tracking-widest opacity-50">Settings</span>
+                <Settings2 className={cn("w-4 h-4", currentTheme.muted)} />
+                <span className={cn("text-xs font-bold uppercase tracking-widest", currentTheme.muted)}>Settings</span>
               </div>
               
-              <div className="space-y-3">
-                <div className="space-y-1">
-                  <label className="text-[10px] uppercase tracking-widest opacity-40">Game Mode</label>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className={cn("text-[10px] uppercase tracking-widest block font-bold", currentTheme.muted)}>Game Mode</label>
                   <div className="flex bg-white/5 p-1 rounded-lg gap-1">
                     <ModeButton active={gameMode === "PvP"} onClick={() => { setGameMode("PvP"); resetGame(); }} icon={<User className="w-3 h-3" />} label="PvP" />
                     <ModeButton active={gameMode === "PvE"} onClick={() => { setGameMode("PvE"); resetGame(); }} icon={<Cpu className="w-3 h-3" />} label="AI" />
@@ -247,8 +278,8 @@ export function TicTacToe() {
                 </div>
 
                 {gameMode === "PvE" && (
-                  <div className="space-y-1">
-                    <label className="text-[10px] uppercase tracking-widest opacity-40">Difficulty</label>
+                  <div className="space-y-2">
+                    <label className={cn("text-[10px] uppercase tracking-widest block font-bold", currentTheme.muted)}>Difficulty</label>
                     <div className="flex bg-white/5 p-1 rounded-lg gap-1">
                       <ModeButton active={difficulty === "Easy"} onClick={() => setDifficulty("Easy")} label="Easy" />
                       <ModeButton active={difficulty === "Hard"} onClick={() => setDifficulty("Hard")} label="Hard" />
@@ -256,16 +287,18 @@ export function TicTacToe() {
                   </div>
                 )}
 
-                <div className="space-y-1">
-                  <label className="text-[10px] uppercase tracking-widest opacity-40">Theme</label>
-                  <div className="grid grid-cols-2 gap-1">
+                <div className="space-y-2">
+                  <label className={cn("text-[10px] uppercase tracking-widest block font-bold", currentTheme.muted)}>Theme</label>
+                  <div className="grid grid-cols-2 gap-2">
                     {(Object.keys(THEMES) as Theme[]).map((t) => (
                       <button
                         key={t}
                         onClick={() => setTheme(t)}
                         className={cn(
-                          "px-2 py-1.5 rounded-md text-[10px] font-bold transition-all",
-                          theme === t ? "bg-white text-black" : "bg-white/5 hover:bg-white/10"
+                          "px-2 py-2 rounded-lg text-[10px] font-bold transition-all border",
+                          theme === t 
+                            ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.3)]" 
+                            : "bg-white/5 text-white/60 border-white/5 hover:border-white/20 hover:bg-white/10"
                         )}
                       >
                         {t}
@@ -277,28 +310,48 @@ export function TicTacToe() {
             </CardContent>
           </Card>
 
-          <Card className={cn("backdrop-blur-xl transition-all duration-500", currentTheme.card)}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <History className="w-4 h-4 opacity-50" />
-                  <span className="text-xs font-bold uppercase tracking-widest opacity-50">Log</span>
-                </div>
-                <button onClick={() => setIsSoundEnabled(!isSoundEnabled)} className="opacity-40 hover:opacity-100 transition-opacity">
-                  {isSoundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+          {/* New Improved Log Section */}
+          <Card className={cn("backdrop-blur-xl transition-all duration-500 overflow-hidden", currentTheme.card)}>
+            <div className="p-4 border-b border-white/5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <History className={cn("w-4 h-4", currentTheme.muted)} />
+                <span className={cn("text-xs font-bold uppercase tracking-widest", currentTheme.muted)}>Activity Log</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setIsSoundEnabled(!isSoundEnabled)} className={cn("hover:opacity-100 transition-opacity", currentTheme.muted)}>
+                  {isSoundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
                 </button>
               </div>
-              <div className="space-y-2 h-32 overflow-hidden flex flex-col justify-end">
-                {gameLog.map((log, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1 - i * 0.2, x: 0 }}
-                    className="text-xs opacity-80 border-l-2 border-white/10 pl-2 py-1"
-                  >
-                    {log}
-                  </motion.div>
-                ))}
+            </div>
+            <CardContent className="p-0">
+              <div 
+                ref={logContainerRef}
+                className="h-48 overflow-y-auto custom-scrollbar p-3 space-y-2 flex flex-col-reverse"
+              >
+                <AnimatePresence initial={false}>
+                  {gameLog.map((log, i) => (
+                    <motion.div
+                      key={`${log.time}-${i}`}
+                      initial={{ opacity: 0, x: -10, height: 0 }}
+                      animate={{ opacity: 1, x: 0, height: "auto" }}
+                      exit={{ opacity: 0, x: 10 }}
+                      className={cn(
+                        "text-[10px] p-2 rounded-md border flex items-start gap-2",
+                        log.type === "success" && "bg-green-500/10 border-green-500/20 text-green-400",
+                        log.type === "warning" && "bg-yellow-500/10 border-yellow-500/20 text-yellow-400",
+                        log.type === "info" && "bg-white/5 border-white/5 text-white/70"
+                      )}
+                    >
+                      {log.type === "success" && <CheckCircle2 className="w-3 h-3 mt-0.5 shrink-0" />}
+                      {log.type === "warning" && <AlertCircle className="w-3 h-3 mt-0.5 shrink-0" />}
+                      {log.type === "info" && <Clock className="w-3 h-3 mt-0.5 shrink-0" />}
+                      <div className="flex-1">
+                        <div className="font-medium">{log.message}</div>
+                        <div className="opacity-40 mt-0.5 text-[8px] font-mono">{log.time}</div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
             </CardContent>
           </Card>
@@ -309,11 +362,15 @@ export function TicTacToe() {
           <div className="text-center space-y-2">
             <motion.h1 
               layout
-              className={cn("text-6xl font-black tracking-tighter transition-all duration-700", currentTheme.text)}
+              className={cn("text-6xl font-black tracking-tighter transition-all duration-700 drop-shadow-2xl", currentTheme.text)}
             >
-              TIC<span className={cn("mx-2", currentTheme.xColor)}>TAC</span>TOE
+              TIC<span className={cn("mx-2 transition-colors duration-500", currentTheme.xColor)}>TAC</span>TOE
             </motion.h1>
-            <p className="text-xs uppercase tracking-[0.5em] opacity-40 font-bold">Interactive Experience</p>
+            <div className="flex items-center justify-center gap-3">
+              <div className="h-px w-8 bg-current opacity-20" />
+              <p className={cn("text-[10px] uppercase tracking-[0.5em] font-black", currentTheme.muted)}>Nexus Evolution</p>
+              <div className="h-px w-8 bg-current opacity-20" />
+            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
@@ -323,12 +380,16 @@ export function TicTacToe() {
               active={isXNext && !winner} 
               color={currentTheme.xColor}
               themeCard={currentTheme.card}
+              textColor={currentTheme.text}
+              mutedColor={currentTheme.muted}
             />
             <ScoreCard 
               label="Draws" 
               value={scores.draws} 
-              color="text-white/60"
+              color={currentTheme.text}
               themeCard={currentTheme.card}
+              textColor={currentTheme.text}
+              mutedColor={currentTheme.muted}
             />
             <ScoreCard 
               label={gameMode === "PvE" ? "AI Bot" : "Player O"} 
@@ -336,11 +397,13 @@ export function TicTacToe() {
               active={!isXNext && !winner} 
               color={currentTheme.oColor}
               themeCard={currentTheme.card}
+              textColor={currentTheme.text}
+              mutedColor={currentTheme.muted}
             />
           </div>
 
-          <div className="relative aspect-square w-full max-w-[450px] mx-auto">
-            <div className="absolute inset-0 grid grid-cols-3 gap-3">
+          <div className="relative aspect-square w-full max-w-[450px] mx-auto p-4 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-sm">
+            <div className="absolute inset-0 grid grid-cols-3 gap-3 p-4">
               {board.map((cell, idx) => (
                 <GridCell
                   key={idx}
@@ -352,18 +415,28 @@ export function TicTacToe() {
                   xColor={currentTheme.xColor}
                   oColor={currentTheme.oColor}
                   cardStyle={currentTheme.card}
+                  theme={theme}
                 />
               ))}
             </div>
-            {winner && <Confetti winColor={winner === "X" ? currentTheme.xColor : currentTheme.oColor} />}
+            {winner && (
+              <Confetti 
+                winColor={winner === "X" ? currentTheme.xColor : (winner === "O" ? currentTheme.oColor : currentTheme.text)} 
+              />
+            )}
           </div>
 
-          <div className="flex gap-3 max-w-[450px] mx-auto">
+          <div className="flex gap-4 max-w-[450px] mx-auto">
             <Button
               variant="outline"
               onClick={undoMove}
               disabled={history.length === 0 || !!winner}
-              className={cn("flex-1 h-14 transition-all duration-500 font-black tracking-widest", currentTheme.card, "hover:bg-white/10")}
+              className={cn(
+                "flex-1 h-14 transition-all duration-500 font-black tracking-widest border-2",
+                currentTheme.card, 
+                "hover:bg-white/10 active:scale-95 disabled:opacity-30",
+                currentTheme.text
+              )}
             >
               <RotateCcw className="w-5 h-5 mr-2" />
               UNDO
@@ -371,7 +444,12 @@ export function TicTacToe() {
             <Button
               variant="outline"
               onClick={resetGame}
-              className={cn("flex-2 h-14 transition-all duration-500 font-black tracking-widest", currentTheme.card, "hover:bg-white hover:text-black")}
+              className={cn(
+                "flex-[1.5] h-14 transition-all duration-500 font-black tracking-widest border-2",
+                currentTheme.card, 
+                "hover:bg-white hover:text-black hover:border-white active:scale-95",
+                currentTheme.text
+              )}
             >
               <RefreshCw className="w-5 h-5 mr-2" />
               RESET GAME
@@ -379,54 +457,100 @@ export function TicTacToe() {
           </div>
         </div>
 
-        {/* Sidebar Right: Trophies / Info */}
+        {/* Sidebar Right: Improved Achievements */}
         <div className="lg:col-span-3 space-y-4 order-3">
           <Card className={cn("backdrop-blur-xl transition-all duration-500", currentTheme.card)}>
-            <CardContent className="p-4 space-y-4">
+            <CardContent className="p-4 space-y-5">
               <div className="flex items-center gap-2">
                 <Trophy className="w-4 h-4 text-yellow-500" />
-                <span className="text-xs font-bold uppercase tracking-widest opacity-50">Achievements</span>
+                <span className={cn("text-xs font-bold uppercase tracking-widest", currentTheme.muted)}>Mastery Achievements</span>
               </div>
-              <div className="space-y-3">
-                <AchievementItem label="Win streak" value="3 Games" completed={scores.X > 2} />
-                <AchievementItem label="Perfect game" value="Locked" completed={false} />
-                <AchievementItem label="Beat AI Hard" value="Completed" completed={scores.X > 0 && difficulty === "Hard"} />
+              
+              <div className="space-y-4">
+                <AchievementItem 
+                  label="Grandmaster" 
+                  desc="Win 5 games as X"
+                  icon={<Zap className="w-4 h-4" />}
+                  current={scores.X}
+                  target={5}
+                  completed={scores.X >= 5}
+                  themeColor={currentTheme.accent1}
+                />
+                <AchievementItem 
+                  label="Untouchable" 
+                  desc="Defeat Hard AI"
+                  icon={<Shield className="w-4 h-4" />}
+                  current={scores.X > 0 && difficulty === "Hard" ? 1 : 0}
+                  target={1}
+                  completed={scores.X > 0 && difficulty === "Hard"}
+                  themeColor={currentTheme.accent2}
+                />
+                <AchievementItem 
+                  label="Peacekeeper" 
+                  desc="Achieve 3 Draws"
+                  icon={<Star className="w-4 h-4" />}
+                  current={scores.draws}
+                  target={3}
+                  completed={scores.draws >= 3}
+                  themeColor="white"
+                />
               </div>
             </CardContent>
           </Card>
           
-          <div className="p-4 text-center opacity-20">
-            <p className="text-[10px] font-bold uppercase tracking-widest">Version 2.0.4</p>
-            <p className="text-[8px] mt-1">Refined Gaming Interface</p>
+          <div className="p-6 text-center">
+            <div className={cn("text-[10px] font-black uppercase tracking-[0.3em] mb-1", currentTheme.muted)}>System Status</div>
+            <div className="flex items-center justify-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              <span className={cn("text-[8px] font-bold uppercase", currentTheme.text)}>Core Online</span>
+            </div>
           </div>
         </div>
       </motion.div>
+
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.02);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 20px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.2);
+        }
+      `}</style>
     </div>
   );
 }
 
-function GridCell({ index, cell, onClick, isWinning, disabled, xColor, oColor, cardStyle }: any) {
+function GridCell({ index, cell, onClick, isWinning, disabled, xColor, oColor, cardStyle, theme }: any) {
   return (
     <motion.button
       whileHover={!cell && !disabled ? { scale: 0.98, y: -2 } : {}}
       whileTap={!cell && !disabled ? { scale: 0.95 } : {}}
       onClick={onClick}
       className={cn(
-        "relative flex items-center justify-center rounded-2xl border transition-all duration-500",
+        "relative flex items-center justify-center rounded-2xl border-2 transition-all duration-500 group overflow-hidden",
         cardStyle,
-        isWinning && "ring-2 ring-offset-2 ring-offset-transparent scale-105 z-20",
-        isWinning && cell === "X" && "border-cyan-400 bg-cyan-400/20 ring-cyan-400/50",
-        isWinning && cell === "O" && "border-purple-400 bg-purple-400/20 ring-purple-400/50",
-        !cell && !disabled && "hover:border-white/40"
+        isWinning && "ring-4 ring-offset-4 ring-offset-transparent scale-105 z-20",
+        isWinning && cell === "X" && "border-cyan-400 bg-cyan-400/20 ring-cyan-400/50 shadow-[0_0_30px_rgba(34,211,238,0.3)]",
+        isWinning && cell === "O" && "border-purple-400 bg-purple-400/20 ring-purple-400/50 shadow-[0_0_30px_rgba(192,132,252,0.3)]",
+        !cell && !disabled && "hover:border-white/40 hover:bg-white/5"
       )}
     >
+      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      
       <AnimatePresence mode="wait">
         {cell === "X" && (
           <motion.div
             key="X"
-            initial={{ scale: 0.5, opacity: 0, rotate: -45 }}
+            initial={{ scale: 0, opacity: 0, rotate: -90 }}
             animate={{ scale: 1, opacity: 1, rotate: 0 }}
-            className={cn("font-black drop-shadow-2xl", xColor)}
+            className={cn("drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]", xColor)}
           >
             <Hash className="w-12 h-12 lg:w-16 lg:h-16 stroke-[3]" />
           </motion.div>
@@ -434,33 +558,48 @@ function GridCell({ index, cell, onClick, isWinning, disabled, xColor, oColor, c
         {cell === "O" && (
           <motion.div
             key="O"
-            initial={{ scale: 0.5, opacity: 0, rotate: 45 }}
+            initial={{ scale: 0, opacity: 0, rotate: 90 }}
             animate={{ scale: 1, opacity: 1, rotate: 0 }}
-            className={cn("font-black drop-shadow-2xl", oColor)}
+            className={cn("drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]", oColor)}
           >
-            <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-full border-[6px] lg:border-[8px] border-current" />
+            <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-full border-[6px] lg:border-[10px] border-current" />
           </motion.div>
         )}
       </AnimatePresence>
+      
+      {!cell && !disabled && (
+        <div className="w-1 h-1 rounded-full bg-white/10 transition-transform group-hover:scale-150" />
+      )}
     </motion.button>
   );
 }
 
-function ScoreCard({ label, value, color, active, themeCard }: any) {
+function ScoreCard({ label, value, color, active, themeCard, textColor, mutedColor }: any) {
   return (
     <div className={cn(
-      "flex flex-col items-center p-3 rounded-2xl border transition-all duration-500 backdrop-blur-md",
+      "flex flex-col items-center p-4 rounded-2xl border-2 transition-all duration-500 backdrop-blur-md relative overflow-hidden",
       themeCard,
-      active && "bg-white/10 border-white/40 scale-105 shadow-xl"
+      active ? "bg-white/15 border-white/60 scale-105 shadow-[0_0_30px_rgba(255,255,255,0.1)]" : "opacity-60 grayscale-[0.5]"
     )}>
-      <span className="text-[10px] uppercase tracking-widest opacity-40 font-bold">{label}</span>
-      <span className={cn("text-3xl font-black mt-1", color)}>{value}</span>
       {active && (
-        <motion.div
-          layoutId="active-indicator"
-          className="w-1.5 h-1.5 rounded-full bg-white mt-2 shadow-[0_0_10px_white]"
-        />
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white to-transparent opacity-50" />
       )}
+      <span className={cn("text-[10px] uppercase tracking-widest font-black mb-1", mutedColor)}>{label}</span>
+      <span className={cn("text-4xl font-black tabular-nums transition-colors duration-500", color)}>{value}</span>
+      
+      <AnimatePresence>
+        {active && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="flex items-center gap-1 mt-2"
+          >
+            <div className="w-1 h-1 rounded-full bg-current animate-ping" style={{ color: 'white' }} />
+            <span className="text-[8px] font-bold uppercase tracking-wider text-white">Turn</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -470,25 +609,52 @@ function ModeButton({ active, onClick, icon, label }: any) {
     <button
       onClick={onClick}
       className={cn(
-        "flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all duration-300 flex items-center justify-center gap-1.5",
-        active ? "bg-white text-black shadow-lg" : "text-white/60 hover:bg-white/5 hover:text-white"
+        "flex-1 px-3 py-2 rounded-md text-[10px] font-black transition-all duration-300 flex items-center justify-center gap-2",
+        active 
+          ? "bg-white text-black shadow-lg scale-[1.02]" 
+          : "text-white/40 hover:bg-white/5 hover:text-white/80"
       )}
     >
-      {icon} {label}
+      {icon} <span>{label}</span>
     </button>
   );
 }
 
-function AchievementItem({ label, value, completed }: any) {
+function AchievementItem({ label, desc, icon, current, target, completed, themeColor }: any) {
+  const progress = Math.min(100, (current / target) * 100);
+  
   return (
-    <div className="flex items-center justify-between group">
-      <span className={cn("text-[10px] font-medium transition-opacity", completed ? "opacity-100" : "opacity-40")}>{label}</span>
-      <span className={cn(
-        "text-[10px] px-2 py-0.5 rounded-full font-bold",
-        completed ? "bg-green-500/20 text-green-400" : "bg-white/5 text-white/20"
-      )}>
-        {value}
-      </span>
+    <div className="space-y-2 group">
+      <div className="flex items-start justify-between">
+        <div className="flex gap-3">
+          <div className={cn(
+            "p-2 rounded-lg transition-colors",
+            completed ? `bg-${themeColor}/20 text-${themeColor}` : "bg-white/5 text-white/20"
+          )} style={{ 
+            backgroundColor: completed ? undefined : 'rgba(255,255,255,0.05)',
+            color: completed ? (themeColor === 'white' ? 'white' : undefined) : 'rgba(255,255,255,0.2)'
+          }}>
+            {icon}
+          </div>
+          <div>
+            <div className={cn("text-[11px] font-black leading-tight mb-0.5", completed ? "text-white" : "text-white/60")}>{label}</div>
+            <div className="text-[9px] opacity-40 font-medium">{desc}</div>
+          </div>
+        </div>
+        {completed && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+      </div>
+      
+      <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+        <motion.div 
+          initial={{ width: 0 }}
+          animate={{ width: `${progress}%` }}
+          className={cn("h-full transition-colors", completed ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]" : "bg-white/20")}
+        />
+      </div>
+      <div className="flex justify-between text-[8px] font-bold uppercase tracking-widest opacity-30">
+        <span>Progress</span>
+        <span>{current} / {target}</span>
+      </div>
     </div>
   );
 }
@@ -502,27 +668,26 @@ function AuroraBackground() {
         <div className="absolute bottom-1/4 right-1/4 w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-from)_0%,_transparent_50%)] from-rose-500/20 mix-blend-screen blur-[100px]" />
       </div>
       
-      {/* Moving gradient lines (no shapes) */}
       <div className="absolute inset-0 opacity-10">
-        {[...Array(3)].map((_, i) => (
+        {[...Array(5)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute h-[2px] w-full bg-gradient-to-r from-transparent via-white to-transparent"
+            className="absolute h-[1px] w-full bg-gradient-to-r from-transparent via-white/50 to-transparent"
             animate={{
-              top: ["0%", "100%", "0%"],
-              opacity: [0, 0.5, 0],
+              top: ["-10%", "110%"],
+              opacity: [0, 1, 0],
             }}
             transition={{
-              duration: 5 + i * 2,
+              duration: 8 + i * 3,
               repeat: Infinity,
               ease: "linear",
-              delay: i * 1.5
+              delay: i * 2.5
             }}
           />
         ))}
       </div>
 
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-150" />
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.15] brightness-150 mix-blend-overlay" />
     </div>
   );
 }
@@ -530,29 +695,30 @@ function AuroraBackground() {
 function Confetti({ winColor }: { winColor: string }) {
   return (
     <div className="absolute inset-0 pointer-events-none z-50">
-      {[...Array(40)].map((_, i) => (
+      {[...Array(60)].map((_, i) => (
         <motion.div
           key={i}
           initial={{ 
             top: "50%", 
             left: "50%", 
             scale: 0,
-            opacity: 1
+            opacity: 1,
+            rotate: 0
           }}
           animate={{ 
-            top: `${Math.random() * 100}%`,
-            left: `${Math.random() * 100}%`,
-            scale: [0, 1, 0.5],
-            opacity: [1, 1, 0],
-            rotate: Math.random() * 360
+            top: `${Math.random() * 120 - 10}%`,
+            left: `${Math.random() * 120 - 10}%`,
+            scale: [0, 1, 0.5, 0],
+            opacity: [1, 1, 1, 0],
+            rotate: Math.random() * 720
           }}
           transition={{
-            duration: 1.5,
+            duration: 2 + Math.random(),
             ease: "easeOut",
-            delay: Math.random() * 0.2
+            delay: Math.random() * 0.3
           }}
-          className={cn("absolute w-2 h-2 rounded-sm", winColor.replace('text-', 'bg-'))}
-          style={{ backgroundColor: 'currentColor' }}
+          className={cn("absolute w-2 h-2 rounded-[1px]", winColor.replace('text-', 'bg-'))}
+          style={{ backgroundColor: 'currentColor', boxShadow: '0 0 10px currentColor' }}
         />
       ))}
     </div>
