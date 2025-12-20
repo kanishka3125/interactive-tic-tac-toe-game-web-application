@@ -208,6 +208,10 @@ export function TicTacToe() {
     const currentPlayer = isXNext ? "X" : "O";
     newBoard[index] = currentPlayer;
     setBoard(newBoard);
+    setSessionStats(prev => ({
+      ...prev,
+      totalMoves: prev.totalMoves + 1
+    }));
 
     const result = checkWinner(newBoard);
     if (result) {
