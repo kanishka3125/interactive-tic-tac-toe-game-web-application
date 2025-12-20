@@ -265,7 +265,7 @@ export function TicTacToe() {
 
   return (
     <div className={cn(
-      "relative min-h-screen w-full flex flex-col items-center justify-center p-4 overflow-hidden transition-colors duration-1000 bg-gradient-to-br",
+      "relative min-h-screen w-full flex flex-col items-center justify-start p-4 lg:p-12 overflow-x-hidden transition-colors duration-1000 bg-gradient-to-br",
       currentTheme.bg
     )}>
       {/* Dynamic Aurora Background */}
@@ -274,7 +274,7 @@ export function TicTacToe() {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative z-10 w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-6"
+        className="relative z-10 w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-6"
       >
         {/* Sidebar Left: Settings */}
         <div className="lg:col-span-3 space-y-4 order-2 lg:order-1">
@@ -321,132 +321,330 @@ export function TicTacToe() {
                         {t}
                       </button>
                     ))}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Activity Log */}
+          <Card className={cn("backdrop-blur-xl transition-all duration-500 overflow-hidden", currentTheme.card)}>
+            <div className="p-4 border-b border-white/5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <History className={cn("w-4 h-4", currentTheme.muted)} />
+                <span className={cn("text-xs font-bold uppercase tracking-widest", currentTheme.muted)}>Activity Log</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setIsSoundEnabled(!isSoundEnabled)} className={cn("hover:opacity-100 transition-opacity", currentTheme.muted)}>
+                  {isSoundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+            </div>
+            <CardContent className="p-0">
+              <div 
+                ref={logContainerRef}
+                className="h-48 overflow-y-auto custom-scrollbar p-3 space-y-2 flex flex-col-reverse"
+              >
+                <AnimatePresence initial={false}>
+                  {gameLog.map((log, i) => (
+                    <motion.div
+                      key={`${log.time}-${i}`}
+                      initial={{ opacity: 0, x: -10, height: 0 }}
+                      animate={{ opacity: 1, x: 0, height: "auto" }}
+                      exit={{ opacity: 0, x: 10 }}
+                      className={cn(
+                        "text-[10px] p-2 rounded-md border flex items-start gap-2",
+                        log.type === "success" && "bg-green-500/10 border-green-500/20 text-green-400",
+                        log.type === "warning" && "bg-yellow-500/10 border-yellow-500/20 text-yellow-400",
+                        log.type === "info" && "bg-white/5 border-white/5 text-white/70"
+                      )}
+                    >
+                      {log.type === "success" && <CheckCircle2 className="w-3 h-3 mt-0.5 shrink-0" />}
+                      {log.type === "warning" && <AlertCircle className="w-3 h-3 mt-0.5 shrink-0" />}
+                      {log.type === "info" && <Clock className="w-3 h-3 mt-0.5 shrink-0" />}
+                      <div className="flex-1">
+                        <div className="font-medium">{log.message}</div>
+                        <div className="opacity-40 mt-0.5 text-[8px] font-mono">{log.time}</div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Game Area */}
+        <div className="lg:col-span-6 space-y-6 order-1 lg:order-2">
+          <div className="text-center space-y-2">
+            <motion.h1 
+              layout
+              className={cn("text-6xl font-black tracking-tighter transition-all duration-700 drop-shadow-2xl", currentTheme.text)}
+            >
+              TIC<span className={cn("mx-2 transition-colors duration-500", currentTheme.xColor)}>TAC</span>TOE
+            </motion.h1>
+            <div className="flex items-center justify-center gap-3">
+              <div className="h-px w-8 bg-current opacity-20" />
+              <p className={cn("text-[10px] uppercase tracking-[0.5em] font-black", currentTheme.muted)}>Nexus Evolution</p>
+              <div className="h-px w-8 bg-current opacity-20" />
             </div>
           </div>
-        </motion.div>
 
-        {/* Dashboard Footer: Analytics & Leaderboard */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="relative z-10 w-full max-w-5xl mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6"
-        >
-          <div className="lg:col-span-8">
-            <Card className={cn("backdrop-blur-xl transition-all duration-500 overflow-hidden", currentTheme.card)}>
-              <div className="p-4 border-b border-white/5 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Activity className={cn("w-4 h-4", currentTheme.muted)} />
-                  <span className={cn("text-xs font-bold uppercase tracking-widest", currentTheme.muted)}>Nexus Performance Analytics</span>
-                </div>
-                <div className="flex gap-4">
-                  <div className="text-center">
-                    <div className={cn("text-[8px] uppercase font-bold opacity-40", currentTheme.text)}>Uptime</div>
-                    <div className={cn("text-[10px] font-mono font-bold", currentTheme.text)}>
-                      {Math.floor((Date.now() - sessionStats.startTime) / 60000)}m {Math.floor(((Date.now() - sessionStats.startTime) / 1000) % 60)}s
-                    </div>
+          <div className="grid grid-cols-3 gap-4">
+            <ScoreCard 
+              label="Player X" 
+              value={scores.X} 
+              active={isXNext && !winner} 
+              color={currentTheme.xColor}
+              themeCard={currentTheme.card}
+              textColor={currentTheme.text}
+              mutedColor={currentTheme.muted}
+            />
+            <ScoreCard 
+              label="Draws" 
+              value={scores.draws} 
+              color={currentTheme.text}
+              themeCard={currentTheme.card}
+              textColor={currentTheme.text}
+              mutedColor={currentTheme.muted}
+            />
+            <ScoreCard 
+              label={gameMode === "PvE" ? "AI Bot" : "Player O"} 
+              value={scores.O} 
+              active={!isXNext && !winner} 
+              color={currentTheme.oColor}
+              themeCard={currentTheme.card}
+              textColor={currentTheme.text}
+              mutedColor={currentTheme.muted}
+            />
+          </div>
+
+          <div className="relative aspect-square w-full max-w-[450px] mx-auto p-4 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-sm">
+            <div className="absolute inset-0 grid grid-cols-3 gap-3 p-4">
+              {board.map((cell, idx) => (
+                <GridCell
+                  key={idx}
+                  index={idx}
+                  cell={cell}
+                  onClick={() => handleMove(idx)}
+                  isWinning={winningLine?.includes(idx)}
+                  disabled={!!winner}
+                  xColor={currentTheme.xColor}
+                  oColor={currentTheme.oColor}
+                  cardStyle={currentTheme.card}
+                  theme={theme}
+                />
+              ))}
+            </div>
+            {winner && (
+              <Confetti 
+                winColor={winner === "X" ? currentTheme.xColor : (winner === "O" ? currentTheme.oColor : currentTheme.text)} 
+              />
+            )}
+          </div>
+
+          <div className="flex gap-4 max-w-[450px] mx-auto">
+            <Button
+              variant="outline"
+              onClick={undoMove}
+              disabled={history.length === 0 || !!winner}
+              className={cn(
+                "flex-1 h-14 transition-all duration-500 font-black tracking-widest border-2",
+                currentTheme.card, 
+                "hover:bg-white/10 active:scale-95 disabled:opacity-30",
+                currentTheme.text
+              )}
+            >
+              <RotateCcw className="w-5 h-5 mr-2" />
+              UNDO
+            </Button>
+            <Button
+              variant="outline"
+              onClick={resetGame}
+              className={cn(
+                "flex-[1.5] h-14 transition-all duration-500 font-black tracking-widest border-2",
+                currentTheme.card, 
+                "hover:bg-white hover:text-black hover:border-white active:scale-95",
+                currentTheme.text
+              )}
+            >
+              <RefreshCw className="w-5 h-5 mr-2" />
+              RESET GAME
+            </Button>
+          </div>
+        </div>
+
+        {/* Sidebar Right: Achievements */}
+        <div className="lg:col-span-3 space-y-4 order-3">
+          <Card className={cn("backdrop-blur-xl transition-all duration-500", currentTheme.card)}>
+            <CardContent className="p-4 space-y-5">
+              <div className="flex items-center gap-2">
+                <Trophy className="w-4 h-4 text-yellow-500" />
+                <span className={cn("text-xs font-bold uppercase tracking-widest", currentTheme.muted)}>Mastery Achievements</span>
+              </div>
+              
+              <div className="space-y-4">
+                <AchievementItem 
+                  label="Grandmaster" 
+                  desc="Win 5 games as X"
+                  icon={<Zap className="w-4 h-4" />}
+                  current={scores.X}
+                  target={5}
+                  completed={scores.X >= 5}
+                  themeColor={currentTheme.accent1}
+                />
+                <AchievementItem 
+                  label="Untouchable" 
+                  desc="Defeat Hard AI"
+                  icon={<Shield className="w-4 h-4" />}
+                  current={scores.X > 0 && difficulty === "Hard" ? 1 : 0}
+                  target={1}
+                  completed={scores.X > 0 && difficulty === "Hard"}
+                  themeColor={currentTheme.accent2}
+                />
+                <AchievementItem 
+                  label="Peacekeeper" 
+                  desc="Achieve 3 Draws"
+                  icon={<Star className="w-4 h-4" />}
+                  current={scores.draws}
+                  target={3}
+                  completed={scores.draws >= 3}
+                  themeColor="white"
+                />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <div className="p-6 text-center">
+            <div className={cn("text-[10px] font-black uppercase tracking-[0.3em] mb-1", currentTheme.muted)}>System Status</div>
+            <div className="flex items-center justify-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              <span className={cn("text-[8px] font-bold uppercase", currentTheme.text)}>Core Online</span>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* NEW Dashboard Footer: Analytics & Leaderboard */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="relative z-10 w-full max-w-6xl mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6"
+      >
+        <div className="lg:col-span-8">
+          <Card className={cn("backdrop-blur-xl transition-all duration-500 overflow-hidden", currentTheme.card)}>
+            <div className="p-4 border-b border-white/5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Activity className={cn("w-4 h-4", currentTheme.muted)} />
+                <span className={cn("text-xs font-bold uppercase tracking-widest", currentTheme.muted)}>Nexus Performance Analytics</span>
+              </div>
+              <div className="flex gap-4">
+                <div className="text-center">
+                  <div className={cn("text-[8px] uppercase font-bold opacity-40", currentTheme.text)}>Uptime</div>
+                  <div className={cn("text-[10px] font-mono font-bold", currentTheme.text)}>
+                    {Math.floor((Date.now() - sessionStats.startTime) / 60000)}m {Math.floor(((Date.now() - sessionStats.startTime) / 1000) % 60)}s
                   </div>
                 </div>
               </div>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  <AnalyticStat 
-                    icon={<Hash className="w-4 h-4" />} 
-                    label="Total Moves" 
-                    value={sessionStats.totalMoves} 
-                    subtext="Across all rounds"
-                    theme={currentTheme}
-                  />
-                  <AnalyticStat 
-                    icon={<Zap className="w-4 h-4" />} 
-                    label="Matches" 
-                    value={sessionStats.matchesPlayed} 
-                    subtext="Session cycles"
-                    theme={currentTheme}
-                  />
-                  <AnalyticStat 
-                    icon={<BarChart3 className="w-4 h-4" />} 
-                    label="Win Rate" 
-                    value={sessionStats.matchesPlayed > 0 ? `${Math.round((scores.X / sessionStats.matchesPlayed) * 100)}%` : "0%"} 
-                    subtext="X-Dominance"
-                    theme={currentTheme}
-                  />
-                  <AnalyticStat 
-                    icon={<LineChart className="w-4 h-4" />} 
-                    label="Avg Move" 
-                    value={sessionStats.totalMoves > 0 ? `${(Math.floor((Date.now() - sessionStats.startTime) / 1000) / sessionStats.totalMoves).toFixed(1)}s` : "0s"} 
-                    subtext="Decision speed"
-                    theme={currentTheme}
-                  />
-                </div>
-                
-                {/* Visual Analytics Placeholder/Mini-Charts */}
-                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-white/5 rounded-xl p-4 border border-white/5">
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-[10px] font-bold uppercase tracking-wider opacity-40">Session Load</span>
-                      <span className="text-[10px] text-green-400 font-mono">STABLE</span>
-                    </div>
-                    <div className="flex items-end gap-1 h-12">
-                      {[...Array(12)].map((_, i) => (
-                        <motion.div
-                          key={i}
-                          initial={{ height: 0 }}
-                          animate={{ height: `${20 + Math.random() * 80}%` }}
-                          transition={{ repeat: Infinity, repeatType: "reverse", duration: 1 + Math.random() }}
-                          className={cn("flex-1 rounded-t-sm", i % 2 === 0 ? "bg-cyan-500/40" : "bg-purple-500/40")}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <div className="bg-white/5 rounded-xl p-4 border border-white/5 flex items-center gap-4">
-                    <div className="relative w-16 h-16">
-                      <svg className="w-full h-full transform -rotate-90">
-                        <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-white/5" />
-                        <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" 
-                          strokeDasharray={175.9}
-                          strokeDashoffset={175.9 - (175.9 * (scores.X / (scores.X + scores.O + scores.draws || 1)))}
-                          className="text-cyan-400 transition-all duration-1000" 
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold">X</div>
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <div className="text-[10px] font-bold uppercase tracking-wider opacity-40">Tactical Efficiency</div>
-                      <div className="text-xs font-black">NEURAL OPTIMIZED</div>
-                      <div className="text-[9px] opacity-40 italic">Heuristic analysis active...</div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="lg:col-span-4">
-            <Card className={cn("backdrop-blur-xl transition-all duration-500 h-full", currentTheme.card)}>
-              <div className="p-4 border-b border-white/5 flex items-center gap-2">
-                <Users className={cn("w-4 h-4", currentTheme.muted)} />
-                <span className={cn("text-xs font-bold uppercase tracking-widest", currentTheme.muted)}>Global Leaderboard</span>
+            </div>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <AnalyticStat 
+                  icon={<Hash className="w-4 h-4" />} 
+                  label="Total Moves" 
+                  value={sessionStats.totalMoves} 
+                  subtext="Across all rounds"
+                  theme={currentTheme}
+                />
+                <AnalyticStat 
+                  icon={<Zap className="w-4 h-4" />} 
+                  label="Matches" 
+                  value={sessionStats.matchesPlayed} 
+                  subtext="Session cycles"
+                  theme={currentTheme}
+                />
+                <AnalyticStat 
+                  icon={<BarChart3 className="w-4 h-4" />} 
+                  label="Win Rate" 
+                  value={sessionStats.matchesPlayed > 0 ? `${Math.round((scores.X / sessionStats.matchesPlayed) * 100)}%` : "0%"} 
+                  subtext="X-Dominance"
+                  theme={currentTheme}
+                />
+                <AnalyticStat 
+                  icon={<LineChart className="w-4 h-4" />} 
+                  label="Avg Move" 
+                  value={sessionStats.totalMoves > 0 ? `${(Math.floor((Date.now() - sessionStats.startTime) / 1000) / sessionStats.totalMoves).toFixed(1)}s` : "0s"} 
+                  subtext="Decision speed"
+                  theme={currentTheme}
+                />
               </div>
-              <CardContent className="p-4 space-y-3">
-                <LeaderboardItem name="CyberGhost" rank={1} score={2450} avatar="CG" theme={currentTheme} />
-                <LeaderboardItem name="NeonWraith" rank={2} score={2120} avatar="NW" theme={currentTheme} />
-                <LeaderboardItem name="AuroraSage" rank={3} score={1890} avatar="AS" theme={currentTheme} isUser />
-                <LeaderboardItem name="BitRunner" rank={4} score={1560} avatar="BR" theme={currentTheme} />
-                <LeaderboardItem name="VoidWalker" rank={5} score={1240} avatar="VW" theme={currentTheme} />
-                
-                <div className="mt-4 pt-4 border-t border-white/5">
-                  <Button variant="ghost" className="w-full text-[10px] font-bold uppercase tracking-widest opacity-40 hover:opacity-100 hover:bg-white/5">
-                    View Full Rankings
-                  </Button>
+              
+              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white/5 rounded-xl p-4 border border-white/5">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-[10px] font-bold uppercase tracking-wider opacity-40">Session Load</span>
+                    <span className="text-[10px] text-green-400 font-mono">STABLE</span>
+                  </div>
+                  <div className="flex items-end gap-1 h-12">
+                    {[...Array(12)].map((_, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ height: 0 }}
+                        animate={{ height: `${20 + Math.random() * 80}%` }}
+                        transition={{ repeat: Infinity, repeatType: "reverse", duration: 1 + Math.random() }}
+                        className={cn("flex-1 rounded-t-sm", i % 2 === 0 ? "bg-cyan-500/40" : "bg-purple-500/40")}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        </motion.div>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/5 flex items-center gap-4">
+                  <div className="relative w-16 h-16">
+                    <svg className="w-full h-full transform -rotate-90">
+                      <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-white/5" />
+                      <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" 
+                        strokeDasharray={175.9}
+                        strokeDashoffset={175.9 - (175.9 * (scores.X / (scores.X + scores.O + scores.draws || 1)))}
+                        className="text-cyan-400 transition-all duration-1000" 
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold">X</div>
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <div className="text-[10px] font-bold uppercase tracking-wider opacity-40">Tactical Efficiency</div>
+                    <div className="text-xs font-black">NEURAL OPTIMIZED</div>
+                    <div className="text-[9px] opacity-40 italic">Heuristic analysis active...</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-        <style jsx global>{`
+        <div className="lg:col-span-4">
+          <Card className={cn("backdrop-blur-xl transition-all duration-500 h-full", currentTheme.card)}>
+            <div className="p-4 border-b border-white/5 flex items-center gap-2">
+              <Users className={cn("w-4 h-4", currentTheme.muted)} />
+              <span className={cn("text-xs font-bold uppercase tracking-widest", currentTheme.muted)}>Global Leaderboard</span>
+            </div>
+            <CardContent className="p-4 space-y-3">
+              <LeaderboardItem name="CyberGhost" rank={1} score={2450} avatar="CG" theme={currentTheme} />
+              <LeaderboardItem name="NeonWraith" rank={2} score={2120} avatar="NW" theme={currentTheme} />
+              <LeaderboardItem name="AuroraSage" rank={3} score={1890} avatar="AS" theme={currentTheme} isUser />
+              <LeaderboardItem name="BitRunner" rank={4} score={1560} avatar="BR" theme={currentTheme} />
+              <LeaderboardItem name="VoidWalker" rank={5} score={1240} avatar="VW" theme={currentTheme} />
+              
+              <div className="mt-4 pt-4 border-t border-white/5">
+                <Button variant="ghost" className="w-full text-[10px] font-bold uppercase tracking-widest opacity-40 hover:opacity-100 hover:bg-white/5">
+                  View Full Rankings
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </motion.div>
 
+      <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;
         }
@@ -567,11 +765,8 @@ function AchievementItem({ label, desc, icon, current, target, completed, themeC
         <div className="flex gap-3">
           <div className={cn(
             "p-2 rounded-lg transition-colors",
-            completed ? `bg-${themeColor}/20 text-${themeColor}` : "bg-white/5 text-white/20"
-          )} style={{ 
-            backgroundColor: completed ? undefined : 'rgba(255,255,255,0.05)',
-            color: completed ? (themeColor === 'white' ? 'white' : undefined) : 'rgba(255,255,255,0.2)'
-          }}>
+            completed ? "bg-white/10 text-white" : "bg-white/5 text-white/20"
+          )}>
             {icon}
           </div>
           <div>
@@ -592,6 +787,46 @@ function AchievementItem({ label, desc, icon, current, target, completed, themeC
       <div className="flex justify-between text-[8px] font-bold uppercase tracking-widest opacity-30">
         <span>Progress</span>
         <span>{current} / {target}</span>
+      </div>
+    </div>
+  );
+}
+
+function AnalyticStat({ icon, label, value, subtext, theme }: any) {
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center gap-2 mb-1">
+        <div className={cn("p-1.5 rounded-md bg-white/5", theme.muted)}>{icon}</div>
+        <span className={cn("text-[10px] font-bold uppercase tracking-wider opacity-40", theme.text)}>{label}</span>
+      </div>
+      <div className={cn("text-xl font-black tabular-nums", theme.text)}>{value}</div>
+      <div className={cn("text-[9px] font-bold opacity-30 uppercase tracking-widest")}>{subtext}</div>
+    </div>
+  );
+}
+
+function LeaderboardItem({ name, rank, score, avatar, theme, isUser }: any) {
+  return (
+    <div className={cn(
+      "flex items-center justify-between p-2 rounded-xl transition-all border",
+      isUser ? "bg-white/10 border-white/20 shadow-lg" : "bg-white/5 border-transparent hover:border-white/10"
+    )}>
+      <div className="flex items-center gap-3">
+        <div className={cn("text-[10px] font-black w-4 opacity-40")}>{rank}</div>
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-white/10 to-transparent border border-white/10 flex items-center justify-center text-[10px] font-black">
+          {avatar}
+        </div>
+        <div>
+          <div className="text-[11px] font-black flex items-center gap-1.5">
+            {name}
+            {isUser && <span className="text-[8px] bg-cyan-500 text-black px-1 rounded-sm">YOU</span>}
+          </div>
+          <div className="text-[9px] opacity-30 uppercase tracking-widest font-bold">Rank {rank <= 3 ? "Elite" : "Pro"}</div>
+        </div>
+      </div>
+      <div className="text-right">
+        <div className={cn("text-[11px] font-black tabular-nums", theme.text)}>{score}</div>
+        <div className="text-[8px] opacity-30 uppercase tracking-tighter font-bold">Points</div>
       </div>
     </div>
   );
@@ -655,7 +890,7 @@ function Confetti({ winColor }: { winColor: string }) {
             ease: "easeOut",
             delay: Math.random() * 0.3
           }}
-          className={cn("absolute w-2 h-2 rounded-[1px]", winColor.replace('text-', 'bg-'))}
+          className={cn("absolute w-2 h-2 rounded-[1px]")}
           style={{ backgroundColor: 'currentColor', boxShadow: '0 0 10px currentColor' }}
         />
       ))}
