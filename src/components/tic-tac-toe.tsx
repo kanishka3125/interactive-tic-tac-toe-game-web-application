@@ -249,6 +249,7 @@ export function TicTacToe() {
     setIsXNext(true);
     setWinner(null);
     setWinningLine(null);
+    setSessionStats(prev => ({ ...prev, matchesPlayed: prev.matchesPlayed + 1 }));
     addLog("Game reset", "info");
   };
 
