@@ -118,6 +118,13 @@ export function TicTacToe() {
     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) 
   }]);
   
+  const [sessionStats, setSessionStats] = useState({
+    totalMoves: 0,
+    startTime: Date.now(),
+    optimalMoves: 0,
+    matchesPlayed: 0
+  });
+
   const logContainerRef = useRef<HTMLDivElement>(null);
 
   const currentTheme = THEMES[theme];
