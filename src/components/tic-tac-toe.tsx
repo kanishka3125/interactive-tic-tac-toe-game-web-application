@@ -474,55 +474,100 @@ export function TicTacToe() {
           </div>
         </div>
 
-        {/* Sidebar Right: Achievements */}
-        <div className="lg:col-span-3 space-y-4 order-3">
-          <Card className={cn("backdrop-blur-xl transition-all duration-500", currentTheme.card)}>
-            <CardContent className="p-4 space-y-5">
-              <div className="flex items-center gap-2">
-                <Trophy className="w-4 h-4 text-yellow-500" />
-                <span className={cn("text-xs font-bold uppercase tracking-widest", currentTheme.muted)}>Mastery Achievements</span>
+          {/* Sidebar Right: Achievements & Intelligence */}
+          <div className="lg:col-span-3 space-y-4 order-3">
+            <Card className={cn("backdrop-blur-xl transition-all duration-500", currentTheme.card)}>
+              <CardContent className="p-4 space-y-5">
+                <div className="flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-yellow-500" />
+                  <span className={cn("text-xs font-bold uppercase tracking-widest", currentTheme.muted)}>Mastery Achievements</span>
+                </div>
+                
+                <div className="space-y-4">
+                  <AchievementItem 
+                    label="Grandmaster" 
+                    desc="Win 5 games as X"
+                    icon={<Zap className="w-4 h-4" />}
+                    current={scores.X}
+                    target={5}
+                    completed={scores.X >= 5}
+                    themeColor={currentTheme.accent1}
+                  />
+                  <AchievementItem 
+                    label="Untouchable" 
+                    desc="Defeat Hard AI"
+                    icon={<Shield className="w-4 h-4" />}
+                    current={scores.X > 0 && difficulty === "Hard" ? 1 : 0}
+                    target={1}
+                    completed={scores.X > 0 && difficulty === "Hard"}
+                    themeColor={currentTheme.accent2}
+                  />
+                  <AchievementItem 
+                    label="Peacekeeper" 
+                    desc="Achieve 3 Draws"
+                    icon={<Star className="w-4 h-4" />}
+                    current={scores.draws}
+                    target={3}
+                    completed={scores.draws >= 3}
+                    themeColor="white"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className={cn("backdrop-blur-xl transition-all duration-500", currentTheme.card)}>
+              <CardContent className="p-4 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Activity className={cn("w-4 h-4", currentTheme.muted)} />
+                  <span className={cn("text-xs font-bold uppercase tracking-widest", currentTheme.muted)}>Nexus Intelligence</span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <div className={cn("text-[8px] font-bold uppercase tracking-tighter opacity-40", currentTheme.text)}>Win Rate</div>
+                    <div className={cn("text-lg font-black", currentTheme.text)}>
+                      {sessionStats.matchesPlayed > 0 ? `${Math.round((scores.X / sessionStats.matchesPlayed) * 100)}%` : "0%"}
+                    </div>
+                  </div>
+                  <div className="space-y-1 text-right">
+                    <div className={cn("text-[8px] font-bold uppercase tracking-tighter opacity-40", currentTheme.text)}>Accuracy</div>
+                    <div className={cn("text-lg font-black text-cyan-400")}>94.2%</div>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={cn("text-[8px] font-bold uppercase tracking-widest opacity-40", currentTheme.text)}>Tactical Load</span>
+                    <span className="text-[8px] text-green-400 font-mono">OPTIMAL</span>
+                  </div>
+                  <div className="flex gap-0.5 h-6">
+                    {[...Array(20)].map((_, i) => (
+                      <motion.div
+                        key={i}
+                        animate={{ height: [`${30 + Math.random() * 70}%`, `${30 + Math.random() * 70}%`] }}
+                        transition={{ repeat: Infinity, duration: 1 + Math.random() }}
+                        className={cn("flex-1 rounded-full", i < 14 ? "bg-cyan-500/40" : "bg-white/10")}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2 border-t border-white/5">
+                  <div className="w-2 h-2 rounded-full bg-cyan-500 animate-ping" />
+                  <span className={cn("text-[9px] font-bold uppercase tracking-widest", currentTheme.muted)}>Live Analysis Feed</span>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/5 text-center group hover:bg-white/10 transition-colors">
+              <div className={cn("text-[10px] font-black uppercase tracking-[0.3em] mb-1", currentTheme.muted)}>System Status</div>
+              <div className="flex items-center justify-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                <span className={cn("text-[8px] font-bold uppercase", currentTheme.text)}>Core Online</span>
               </div>
-              
-              <div className="space-y-4">
-                <AchievementItem 
-                  label="Grandmaster" 
-                  desc="Win 5 games as X"
-                  icon={<Zap className="w-4 h-4" />}
-                  current={scores.X}
-                  target={5}
-                  completed={scores.X >= 5}
-                  themeColor={currentTheme.accent1}
-                />
-                <AchievementItem 
-                  label="Untouchable" 
-                  desc="Defeat Hard AI"
-                  icon={<Shield className="w-4 h-4" />}
-                  current={scores.X > 0 && difficulty === "Hard" ? 1 : 0}
-                  target={1}
-                  completed={scores.X > 0 && difficulty === "Hard"}
-                  themeColor={currentTheme.accent2}
-                />
-                <AchievementItem 
-                  label="Peacekeeper" 
-                  desc="Achieve 3 Draws"
-                  icon={<Star className="w-4 h-4" />}
-                  current={scores.draws}
-                  target={3}
-                  completed={scores.draws >= 3}
-                  themeColor="white"
-                />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <div className="p-6 text-center">
-            <div className={cn("text-[10px] font-black uppercase tracking-[0.3em] mb-1", currentTheme.muted)}>System Status</div>
-            <div className="flex items-center justify-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              <span className={cn("text-[8px] font-bold uppercase", currentTheme.text)}>Core Online</span>
             </div>
           </div>
-        </div>
+
       </motion.div>
 
       {/* NEW Dashboard Footer: Analytics & Leaderboard */}
