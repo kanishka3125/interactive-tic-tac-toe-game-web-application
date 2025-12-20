@@ -321,211 +321,132 @@ export function TicTacToe() {
                         {t}
                       </button>
                     ))}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Dashboard Footer: Analytics & Leaderboard */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="relative z-10 w-full max-w-5xl mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6"
+        >
+          <div className="lg:col-span-8">
+            <Card className={cn("backdrop-blur-xl transition-all duration-500 overflow-hidden", currentTheme.card)}>
+              <div className="p-4 border-b border-white/5 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Activity className={cn("w-4 h-4", currentTheme.muted)} />
+                  <span className={cn("text-xs font-bold uppercase tracking-widest", currentTheme.muted)}>Nexus Performance Analytics</span>
+                </div>
+                <div className="flex gap-4">
+                  <div className="text-center">
+                    <div className={cn("text-[8px] uppercase font-bold opacity-40", currentTheme.text)}>Uptime</div>
+                    <div className={cn("text-[10px] font-mono font-bold", currentTheme.text)}>
+                      {Math.floor((Date.now() - sessionStats.startTime) / 60000)}m {Math.floor(((Date.now() - sessionStats.startTime) / 1000) % 60)}s
+                    </div>
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* New Improved Log Section */}
-          <Card className={cn("backdrop-blur-xl transition-all duration-500 overflow-hidden", currentTheme.card)}>
-            <div className="p-4 border-b border-white/5 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <History className={cn("w-4 h-4", currentTheme.muted)} />
-                <span className={cn("text-xs font-bold uppercase tracking-widest", currentTheme.muted)}>Activity Log</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setIsSoundEnabled(!isSoundEnabled)} className={cn("hover:opacity-100 transition-opacity", currentTheme.muted)}>
-                  {isSoundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-                </button>
-              </div>
-            </div>
-            <CardContent className="p-0">
-              <div 
-                ref={logContainerRef}
-                className="h-48 overflow-y-auto custom-scrollbar p-3 space-y-2 flex flex-col-reverse"
-              >
-                <AnimatePresence initial={false}>
-                  {gameLog.map((log, i) => (
-                    <motion.div
-                      key={`${log.time}-${i}`}
-                      initial={{ opacity: 0, x: -10, height: 0 }}
-                      animate={{ opacity: 1, x: 0, height: "auto" }}
-                      exit={{ opacity: 0, x: 10 }}
-                      className={cn(
-                        "text-[10px] p-2 rounded-md border flex items-start gap-2",
-                        log.type === "success" && "bg-green-500/10 border-green-500/20 text-green-400",
-                        log.type === "warning" && "bg-yellow-500/10 border-yellow-500/20 text-yellow-400",
-                        log.type === "info" && "bg-white/5 border-white/5 text-white/70"
-                      )}
-                    >
-                      {log.type === "success" && <CheckCircle2 className="w-3 h-3 mt-0.5 shrink-0" />}
-                      {log.type === "warning" && <AlertCircle className="w-3 h-3 mt-0.5 shrink-0" />}
-                      {log.type === "info" && <Clock className="w-3 h-3 mt-0.5 shrink-0" />}
-                      <div className="flex-1">
-                        <div className="font-medium">{log.message}</div>
-                        <div className="opacity-40 mt-0.5 text-[8px] font-mono">{log.time}</div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Game Area */}
-        <div className="lg:col-span-6 space-y-6 order-1 lg:order-2">
-          <div className="text-center space-y-2">
-            <motion.h1 
-              layout
-              className={cn("text-6xl font-black tracking-tighter transition-all duration-700 drop-shadow-2xl", currentTheme.text)}
-            >
-              TIC<span className={cn("mx-2 transition-colors duration-500", currentTheme.xColor)}>TAC</span>TOE
-            </motion.h1>
-            <div className="flex items-center justify-center gap-3">
-              <div className="h-px w-8 bg-current opacity-20" />
-              <p className={cn("text-[10px] uppercase tracking-[0.5em] font-black", currentTheme.muted)}>Nexus Evolution</p>
-              <div className="h-px w-8 bg-current opacity-20" />
-            </div>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  <AnalyticStat 
+                    icon={<Hash className="w-4 h-4" />} 
+                    label="Total Moves" 
+                    value={sessionStats.totalMoves} 
+                    subtext="Across all rounds"
+                    theme={currentTheme}
+                  />
+                  <AnalyticStat 
+                    icon={<Zap className="w-4 h-4" />} 
+                    label="Matches" 
+                    value={sessionStats.matchesPlayed} 
+                    subtext="Session cycles"
+                    theme={currentTheme}
+                  />
+                  <AnalyticStat 
+                    icon={<BarChart3 className="w-4 h-4" />} 
+                    label="Win Rate" 
+                    value={sessionStats.matchesPlayed > 0 ? `${Math.round((scores.X / sessionStats.matchesPlayed) * 100)}%` : "0%"} 
+                    subtext="X-Dominance"
+                    theme={currentTheme}
+                  />
+                  <AnalyticStat 
+                    icon={<LineChart className="w-4 h-4" />} 
+                    label="Avg Move" 
+                    value={sessionStats.totalMoves > 0 ? `${(Math.floor((Date.now() - sessionStats.startTime) / 1000) / sessionStats.totalMoves).toFixed(1)}s` : "0s"} 
+                    subtext="Decision speed"
+                    theme={currentTheme}
+                  />
+                </div>
+                
+                {/* Visual Analytics Placeholder/Mini-Charts */}
+                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white/5 rounded-xl p-4 border border-white/5">
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-[10px] font-bold uppercase tracking-wider opacity-40">Session Load</span>
+                      <span className="text-[10px] text-green-400 font-mono">STABLE</span>
+                    </div>
+                    <div className="flex items-end gap-1 h-12">
+                      {[...Array(12)].map((_, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ height: 0 }}
+                          animate={{ height: `${20 + Math.random() * 80}%` }}
+                          transition={{ repeat: Infinity, repeatType: "reverse", duration: 1 + Math.random() }}
+                          className={cn("flex-1 rounded-t-sm", i % 2 === 0 ? "bg-cyan-500/40" : "bg-purple-500/40")}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="bg-white/5 rounded-xl p-4 border border-white/5 flex items-center gap-4">
+                    <div className="relative w-16 h-16">
+                      <svg className="w-full h-full transform -rotate-90">
+                        <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-white/5" />
+                        <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" 
+                          strokeDasharray={175.9}
+                          strokeDashoffset={175.9 - (175.9 * (scores.X / (scores.X + scores.O + scores.draws || 1)))}
+                          className="text-cyan-400 transition-all duration-1000" 
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold">X</div>
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <div className="text-[10px] font-bold uppercase tracking-wider opacity-40">Tactical Efficiency</div>
+                      <div className="text-xs font-black">NEURAL OPTIMIZED</div>
+                      <div className="text-[9px] opacity-40 italic">Heuristic analysis active...</div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <ScoreCard 
-              label="Player X" 
-              value={scores.X} 
-              active={isXNext && !winner} 
-              color={currentTheme.xColor}
-              themeCard={currentTheme.card}
-              textColor={currentTheme.text}
-              mutedColor={currentTheme.muted}
-            />
-            <ScoreCard 
-              label="Draws" 
-              value={scores.draws} 
-              color={currentTheme.text}
-              themeCard={currentTheme.card}
-              textColor={currentTheme.text}
-              mutedColor={currentTheme.muted}
-            />
-            <ScoreCard 
-              label={gameMode === "PvE" ? "AI Bot" : "Player O"} 
-              value={scores.O} 
-              active={!isXNext && !winner} 
-              color={currentTheme.oColor}
-              themeCard={currentTheme.card}
-              textColor={currentTheme.text}
-              mutedColor={currentTheme.muted}
-            />
-          </div>
-
-          <div className="relative aspect-square w-full max-w-[450px] mx-auto p-4 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-sm">
-            <div className="absolute inset-0 grid grid-cols-3 gap-3 p-4">
-              {board.map((cell, idx) => (
-                <GridCell
-                  key={idx}
-                  index={idx}
-                  cell={cell}
-                  onClick={() => handleMove(idx)}
-                  isWinning={winningLine?.includes(idx)}
-                  disabled={!!winner}
-                  xColor={currentTheme.xColor}
-                  oColor={currentTheme.oColor}
-                  cardStyle={currentTheme.card}
-                  theme={theme}
-                />
-              ))}
-            </div>
-            {winner && (
-              <Confetti 
-                winColor={winner === "X" ? currentTheme.xColor : (winner === "O" ? currentTheme.oColor : currentTheme.text)} 
-              />
-            )}
-          </div>
-
-          <div className="flex gap-4 max-w-[450px] mx-auto">
-            <Button
-              variant="outline"
-              onClick={undoMove}
-              disabled={history.length === 0 || !!winner}
-              className={cn(
-                "flex-1 h-14 transition-all duration-500 font-black tracking-widest border-2",
-                currentTheme.card, 
-                "hover:bg-white/10 active:scale-95 disabled:opacity-30",
-                currentTheme.text
-              )}
-            >
-              <RotateCcw className="w-5 h-5 mr-2" />
-              UNDO
-            </Button>
-            <Button
-              variant="outline"
-              onClick={resetGame}
-              className={cn(
-                "flex-[1.5] h-14 transition-all duration-500 font-black tracking-widest border-2",
-                currentTheme.card, 
-                "hover:bg-white hover:text-black hover:border-white active:scale-95",
-                currentTheme.text
-              )}
-            >
-              <RefreshCw className="w-5 h-5 mr-2" />
-              RESET GAME
-            </Button>
-          </div>
-        </div>
-
-        {/* Sidebar Right: Improved Achievements */}
-        <div className="lg:col-span-3 space-y-4 order-3">
-          <Card className={cn("backdrop-blur-xl transition-all duration-500", currentTheme.card)}>
-            <CardContent className="p-4 space-y-5">
-              <div className="flex items-center gap-2">
-                <Trophy className="w-4 h-4 text-yellow-500" />
-                <span className={cn("text-xs font-bold uppercase tracking-widest", currentTheme.muted)}>Mastery Achievements</span>
+          <div className="lg:col-span-4">
+            <Card className={cn("backdrop-blur-xl transition-all duration-500 h-full", currentTheme.card)}>
+              <div className="p-4 border-b border-white/5 flex items-center gap-2">
+                <Users className={cn("w-4 h-4", currentTheme.muted)} />
+                <span className={cn("text-xs font-bold uppercase tracking-widest", currentTheme.muted)}>Global Leaderboard</span>
               </div>
-              
-              <div className="space-y-4">
-                <AchievementItem 
-                  label="Grandmaster" 
-                  desc="Win 5 games as X"
-                  icon={<Zap className="w-4 h-4" />}
-                  current={scores.X}
-                  target={5}
-                  completed={scores.X >= 5}
-                  themeColor={currentTheme.accent1}
-                />
-                <AchievementItem 
-                  label="Untouchable" 
-                  desc="Defeat Hard AI"
-                  icon={<Shield className="w-4 h-4" />}
-                  current={scores.X > 0 && difficulty === "Hard" ? 1 : 0}
-                  target={1}
-                  completed={scores.X > 0 && difficulty === "Hard"}
-                  themeColor={currentTheme.accent2}
-                />
-                <AchievementItem 
-                  label="Peacekeeper" 
-                  desc="Achieve 3 Draws"
-                  icon={<Star className="w-4 h-4" />}
-                  current={scores.draws}
-                  target={3}
-                  completed={scores.draws >= 3}
-                  themeColor="white"
-                />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <div className="p-6 text-center">
-            <div className={cn("text-[10px] font-black uppercase tracking-[0.3em] mb-1", currentTheme.muted)}>System Status</div>
-            <div className="flex items-center justify-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              <span className={cn("text-[8px] font-bold uppercase", currentTheme.text)}>Core Online</span>
-            </div>
+              <CardContent className="p-4 space-y-3">
+                <LeaderboardItem name="CyberGhost" rank={1} score={2450} avatar="CG" theme={currentTheme} />
+                <LeaderboardItem name="NeonWraith" rank={2} score={2120} avatar="NW" theme={currentTheme} />
+                <LeaderboardItem name="AuroraSage" rank={3} score={1890} avatar="AS" theme={currentTheme} isUser />
+                <LeaderboardItem name="BitRunner" rank={4} score={1560} avatar="BR" theme={currentTheme} />
+                <LeaderboardItem name="VoidWalker" rank={5} score={1240} avatar="VW" theme={currentTheme} />
+                
+                <div className="mt-4 pt-4 border-t border-white/5">
+                  <Button variant="ghost" className="w-full text-[10px] font-bold uppercase tracking-widest opacity-40 hover:opacity-100 hover:bg-white/5">
+                    View Full Rankings
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
 
-      <style jsx global>{`
+        <style jsx global>{`
+
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;
         }
