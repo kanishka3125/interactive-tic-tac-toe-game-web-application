@@ -18,9 +18,14 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
+  LineChart,
+  BarChart3,
+  Users,
+  Award,
   Zap,
   Star,
-  Shield
+  Shield,
+  Activity
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
