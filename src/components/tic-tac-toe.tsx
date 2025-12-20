@@ -551,11 +551,18 @@ export function TicTacToe() {
                     ))}
                   </div>
                 </div>
+              </CardContent>
+            </Card>
 
-                <div className="flex items-center gap-2 pt-2 border-t border-white/5">
-                  <div className="w-2 h-2 rounded-full bg-cyan-500 animate-ping" />
-                  <span className={cn("text-[9px] font-bold uppercase tracking-widest", currentTheme.muted)}>Live Analysis Feed</span>
-                </div>
+            <Card className={cn("backdrop-blur-xl transition-all duration-500", currentTheme.card)}>
+              <div className="p-3 border-b border-white/5 flex items-center gap-2">
+                <Users className={cn("w-3.5 h-3.5", currentTheme.muted)} />
+                <span className={cn("text-[10px] font-bold uppercase tracking-widest", currentTheme.muted)}>Global Rankings</span>
+              </div>
+              <CardContent className="p-3 space-y-2">
+                <LeaderboardItem name="CyberGhost" rank={1} score={2450} avatar="CG" theme={currentTheme} compact />
+                <LeaderboardItem name="NeonWraith" rank={2} score={2120} avatar="NW" theme={currentTheme} compact />
+                <LeaderboardItem name="AuroraSage" rank={3} score={1890} avatar="AS" theme={currentTheme} isUser compact />
               </CardContent>
             </Card>
             
