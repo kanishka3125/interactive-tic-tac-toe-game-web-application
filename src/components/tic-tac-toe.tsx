@@ -857,28 +857,32 @@ function AnalyticStat({ icon, label, value, subtext, theme }: any) {
   );
 }
 
-function LeaderboardItem({ name, rank, score, avatar, theme, isUser }: any) {
+function LeaderboardItem({ name, rank, score, avatar, theme, isUser, compact }: any) {
   return (
     <div className={cn(
-      "flex items-center justify-between p-2 rounded-xl transition-all border",
+      "flex items-center justify-between rounded-xl transition-all border",
+      compact ? "p-1.5" : "p-2",
       isUser ? "bg-white/10 border-white/20 shadow-lg" : "bg-white/5 border-transparent hover:border-white/10"
     )}>
-      <div className="flex items-center gap-3">
-        <div className={cn("text-[10px] font-black w-4 opacity-40")}>{rank}</div>
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-white/10 to-transparent border border-white/10 flex items-center justify-center text-[10px] font-black">
+      <div className="flex items-center gap-2">
+        <div className={cn("text-[9px] font-black w-3 opacity-40")}>{rank}</div>
+        <div className={cn(
+          "rounded-lg bg-gradient-to-br from-white/10 to-transparent border border-white/10 flex items-center justify-center font-black",
+          compact ? "w-6 h-6 text-[8px]" : "w-8 h-8 text-[10px]"
+        )}>
           {avatar}
         </div>
         <div>
-          <div className="text-[11px] font-black flex items-center gap-1.5">
+          <div className={cn("font-black flex items-center gap-1", compact ? "text-[10px]" : "text-[11px]")}>
             {name}
-            {isUser && <span className="text-[8px] bg-cyan-500 text-black px-1 rounded-sm">YOU</span>}
+            {isUser && <span className="text-[7px] bg-cyan-500 text-black px-1 rounded-sm">YOU</span>}
           </div>
-          <div className="text-[9px] opacity-30 uppercase tracking-widest font-bold">Rank {rank <= 3 ? "Elite" : "Pro"}</div>
+          {!compact && <div className="text-[9px] opacity-30 uppercase tracking-widest font-bold">Rank {rank <= 3 ? "Elite" : "Pro"}</div>}
         </div>
       </div>
       <div className="text-right">
-        <div className={cn("text-[11px] font-black tabular-nums", theme.text)}>{score}</div>
-        <div className="text-[8px] opacity-30 uppercase tracking-tighter font-bold">Points</div>
+        <div className={cn("font-black tabular-nums", compact ? "text-[10px]" : "text-[11px]", theme.text)}>{score}</div>
+        {!compact && <div className="text-[8px] opacity-30 uppercase tracking-tighter font-bold">Points</div>}
       </div>
     </div>
   );
