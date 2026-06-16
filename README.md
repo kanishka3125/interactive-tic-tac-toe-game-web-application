@@ -1,36 +1,123 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Interactive Tic-Tac-Toe Web Application
 
-## Getting Started
+An interactive and modern Tic-Tac-Toe game built with a focus on user experience, engaging gameplay, and clean UI design.
 
-First, run the development server:
+Originally developed during my 3rd semester break as a side project, this application evolved from a simple Tic-Tac-Toe implementation into a feature-rich gaming experience with AI opponents, achievements, statistics tracking, and customizable themes.
+
+## Live Demo
+
+🔗 Live Demo: https://interactive-animated-tic-tac-toe.vercel.app/
+
+## GitHub Repository
+
+💻 Repository: https://github.com/kanishka3125/interactive-tic-tac-toe-game-web-application.git
+
+---
+
+## Features
+
+### 🎮 Multiple Game Modes
+
+* Player vs AI
+* Adjustable AI difficulty levels
+* Interactive gameplay experience
+
+### 🎨 Custom Themes
+
+* Multiple visual themes
+* Modern and responsive user interface
+* Smooth transitions and animations
+
+### 🏆 Achievement System
+
+* Unlock achievements through gameplay
+* Track progress and milestones
+
+### 📊 Statistics & Activity Tracking
+
+* Game history tracking
+* Performance statistics
+* Activity logs and player insights
+
+### ⚡ User Experience Enhancements
+
+* Responsive design
+* Smooth animations
+* Clean and intuitive navigation
+
+---
+
+## Tech Stack
+
+* React
+* TypeScript
+* Tailwind CSS
+* Vite
+* ShadCN UI
+
+---
+
+## What I Learned
+
+This project taught me that impactful projects do not always require complex ideas.
+
+By continuously improving a simple concept, I gained hands-on experience in:
+
+* Frontend Development
+* Component-Based Architecture
+* State Management
+* User Interface Design
+* User Experience Optimization
+* AI Game Logic Implementation
+* Responsive Web Development
+
+---
+
+## Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/your-username/interactive-tic-tac-toe-game-web-application.git
+```
+
+Navigate to the project directory:
+
+```bash
+cd interactive-tic-tac-toe-game-web-application
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Future Improvements
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+* Online Multiplayer Support
+* User Authentication
+* Global Leaderboards
+* Cloud-Based Data Storage
+* Enhanced AI Strategies
+* Mobile App Version
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Author
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Kanishka
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+B.Tech CSE (AIML)
 
-## Deploy on Vercel
+Passionate about building interactive applications, exploring AI, and creating meaningful technology projects.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+If you found this project interesting, feel free to star the repository and share your feedback.
